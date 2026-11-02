@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Own JEE Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JEE Tracker">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --serif:'Source Serif 4','Tiempos Headline',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;
+  --r:16px;
+}
+:root[data-theme=dark]{
+  --bg:#000;--fg:#f4f1ea;--mut:#9a9ea5;--line:rgba(255,255,255,.12);--line2:rgba(255,255,255,.3);
+  --surf:rgba(255,255,255,.045);--surf2:rgba(255,255,255,.09);--inv:#000;
+  --g1:#ffffff;--g2:#a9adb4;--glow:rgba(185,189,196,.16);color-scheme:dark;
+}
+:root[data-theme=light]{
+  --bg:#fff;--fg:#0b0b0b;--mut:#6a6e75;--line:rgba(0,0,0,.11);--line2:rgba(0,0,0,.3);
+  --surf:rgba(0,0,0,.035);--surf2:rgba(0,0,0,.07);--inv:#fff;
+  --g1:#000000;--g2:#55595f;--glow:rgba(0,0,0,.06);color-scheme:light;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-weight:500;line-height:1.5;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0}
+:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+h1,h2,h3{font-family:var(--serif);font-weight:700}
+
+.app{display:grid;grid-template-columns:288px 1fr;min-height:100vh}
+
+/* sidebar */
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;border-right:1px solid var(--line);background:var(--bg);padding:18px 14px;overflow:hidden}
+.logo{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;font-family:var(--serif);font-weight:800;font-size:1.08rem;line-height:1.2}
+.logo i{flex:none;width:44px;height:44px;display:block;color:var(--fg)}.logo svg{width:44px;height:44px;display:block}
+.newbtn{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;border-radius:12px;font-weight:700;font-size:.92rem;border:1px solid var(--line)}
+.newbtn:hover{background:var(--surf2)}
+.sec{font-size:.78rem;font-weight:700;color:var(--mut);padding:18px 10px 6px}
+.scroll{overflow-y:auto;flex:1;margin:0 -6px;padding:0 6px}
+.scroll::-webkit-scrollbar{width:6px}.scroll::-webkit-scrollbar-thumb{background:var(--line2);border-radius:9px}
+.nv{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;padding:9px 10px;border-radius:10px;font-size:.9rem;font-weight:600;color:var(--fg)}
+.nv:hover{background:var(--surf2)}
+.nv.on{background:var(--surf2);font-weight:700}
+.nv span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nv em{font-style:normal;font-size:.78rem;color:var(--mut);font-weight:700;flex:none}
+.unitnav .nv{font-size:.85rem;color:var(--mut);font-weight:600;padding:7px 10px}
+.unitnav .nv:hover{color:var(--fg)}
+.me{display:flex;align-items:center;gap:10px;padding:12px 8px 2px;border-top:1px solid var(--line);margin-top:10px}
+.av{width:36px;height:36px;border-radius:50%;background:var(--fg);color:var(--inv);display:grid;place-items:center;font-weight:800;font-family:var(--serif);flex:none}
+.me .t{flex:1;min-width:0}
+.me .t b{display:block;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me .t small{color:var(--mut);font-size:.78rem;font-weight:600}
+.ic{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);font-size:1rem}
+.ic:hover{background:var(--surf2)}
+
+/* main */
+.main{min-width:0}
+.top{display:none;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:20}
+.top b{font-family:var(--serif);font-weight:800;font-size:1.05rem;flex:1}
+.content{max-width:1020px;margin:0 auto;padding:48px 32px 40px}
+.hello{font-size:clamp(2.1rem,4.6vw,3.3rem);line-height:1.08;letter-spacing:-.015em;font-weight:800;background:linear-gradient(180deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent;padding-bottom:4px}
+.sub{color:var(--mut);margin-top:12px;max-width:62ch;font-size:1rem}
+.sub b{color:var(--fg);font-weight:700}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:30px}
+.tile{border:1px solid var(--line);background:var(--surf);border-radius:var(--r);padding:18px}
+.tile small{color:var(--mut);font-weight:700;font-size:.82rem}
+.tile .v{font-family:var(--serif);font-weight:800;font-size:2.1rem;line-height:1.1;margin-top:6px}
+.tile .v s{text-decoration:none;color:var(--mut);font-size:1.1rem;margin-left:4px}
+.meter{height:4px;background:var(--line);border-radius:9px;margin-top:12px;overflow:hidden}
+.meter span{display:block;height:100%;background:var(--fg);border-radius:9px;transition:width .5s}
+
+/* toolbar */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:34px}
+.bar input[type=search]{flex:1 1 240px;min-width:0;border:1px solid var(--line);background:var(--surf);padding:11px 18px;border-radius:999px;font-weight:600;font-size:.92rem}
+.bar input[type=search]:focus{outline:0;border-color:var(--fg)}
+.bar input::placeholder{color:var(--mut)}
+.bar select{appearance:none;border:1px solid var(--line);background:var(--surf);padding:10px 32px 10px 16px;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--fg);background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.bar select option{background:var(--bg);color:var(--fg)}
+.pill{padding:9px 16px;border-radius:999px;border:1px solid var(--line);font-weight:700;font-size:.88rem;background:var(--surf)}
+.pill:hover{border-color:var(--line2)}
+.pill.on{background:var(--fg);color:var(--inv);border-color:var(--fg)}
+.grp{display:flex;gap:6px}
+.bar2{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px}
+.link{color:var(--mut);font-weight:700;font-size:.86rem;border-bottom:1px solid var(--line2);padding-bottom:1px}
+.link:hover{color:var(--fg);border-color:var(--fg)}
+
+/* units */
+.unit{border:1px solid var(--line);border-radius:var(--r);margin-top:12px;background:var(--surf);overflow:hidden;scroll-margin-top:80px}
+.uhw{display:flex;align-items:center}
+.uh{flex:1;display:flex;align-items:center;gap:14px;padding:16px 8px 16px 20px;text-align:left;min-width:0}
+.uh .nm{flex:1;min-width:0}
+.uh h3{font-size:1.18rem;line-height:1.25}
+.uh .tags{display:flex;gap:8px;margin-top:3px;color:var(--mut);font-size:.8rem;font-weight:700;flex-wrap:wrap}
+.uh .mini{width:84px;height:4px;border-radius:9px;background:var(--line);flex:none;overflow:hidden}
+.uh .mini span{display:block;height:100%;background:var(--fg)}
+.uh .pc{font-size:.85rem;font-weight:800;min-width:38px;text-align:right}
+.chev{width:9px;height:9px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(45deg);transition:.2s;flex:none;margin:-4px 6px 0 2px}
+.unit.open .chev{transform:rotate(-135deg);margin-top:3px}
+.x{color:var(--mut);font-size:1.15rem;padding:2px 9px;line-height:1;border-radius:8px}
+.x:hover{color:var(--fg);background:var(--surf2)}
+.body{display:none;border-top:1px solid var(--line);overflow-x:auto}
+.unit.open .body{display:block}
+.tr{display:grid;grid-template-columns:var(--tpl);align-items:center;border-bottom:1px solid var(--line)}
+.tr>*{padding:10px 14px}
+.th{background:var(--surf);color:var(--mut);font-weight:700;font-size:.8rem}
+.th span{display:inline-flex;align-items:center;gap:2px}
+.c{display:flex;justify-content:center;align-items:center}
+.tn{font-weight:600;font-size:.95rem;line-height:1.4}
+.tr.fin .tn{color:var(--mut);text-decoration:line-through;text-decoration-color:var(--line2)}
+.tr:not(.th):hover{background:var(--surf)}
+.stars{gap:0}
+.st{font-size:1.1rem;color:var(--line2);padding:0 1px;line-height:1;transition:.12s}
+.st.on{color:var(--fg)}
+.st:hover{transform:scale(1.15);color:var(--fg)}
+.mark{font-size:1.05rem;color:var(--line2);transition:.12s}
+.mark.on{color:var(--fg)}
+.mark:hover{color:var(--fg)}
+.chk{width:24px;height:24px;border:1.5px solid var(--line2);border-radius:8px;display:grid;place-items:center;transition:.12s}
+.chk:hover{border-color:var(--fg)}
+.chk[aria-pressed=true]{background:var(--fg);border-color:var(--fg)}
+.chk[aria-pressed=true]::after{content:"";width:6px;height:11px;border:solid var(--inv);border-width:0 2.5px 2.5px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.cellt{width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;padding:6px 2px;font-size:.88rem;font-weight:600;min-width:0}
+.cellt:focus{outline:0;border-color:var(--fg)}
+.add-t{display:flex;gap:10px;padding:12px 14px;align-items:center}
+.add-t input{flex:1;background:transparent;border:0;border-bottom:1px solid var(--line);padding:8px 2px;font-weight:600;min-width:0}
+.add-t input:focus{outline:0;border-color:var(--fg)}
+.add-t input::placeholder{color:var(--mut)}
+.btn{border:1px solid var(--line2);padding:9px 18px;border-radius:999px;font-weight:700;font-size:.86rem}
+.btn:hover{background:var(--surf2)}
+.btn.solid{background:var(--fg);color:var(--inv);border-color:var(--fg)}
+.btn.solid:hover{opacity:.88}
+.empty{padding:56px 20px;text-align:center;color:var(--mut);font-weight:600;border:1px dashed var(--line2);border-radius:var(--r);margin-top:12px}
+.addunit{margin-top:12px;display:flex;gap:10px;border:1px dashed var(--line2);border-radius:var(--r);padding:12px 16px;align-items:center}
+.addunit input{flex:1;background:transparent;border:0;font-weight:600;min-width:0}
+.addunit input:focus{outline:0}
+.addunit input::placeholder{color:var(--mut)}
+footer{max-width:1020px;margin:0 auto;padding:28px 32px 56px;color:var(--mut);font-size:.85rem;font-weight:600;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
+footer div{display:flex;gap:18px}
+
+/* dialogs */
+.veil{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(10px);display:none;place-items:center;z-index:60;padding:20px}
+.veil.show{display:grid}
+:root[data-theme=light] .veil{background:rgba(255,255,255,.7)}
+.modal{width:min(500px,100%);border:1px solid var(--line2);background:var(--bg);border-radius:24px;padding:38px 36px;box-shadow:0 30px 100px var(--glow),0 8px 30px rgba(0,0,0,.25)}
+.modal h2{font-size:2.2rem;line-height:1.08;font-weight:800;background:linear-gradient(180deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.modal p{color:var(--mut);margin:10px 0 24px}
+.modal label{display:block;font-weight:700;font-size:.85rem;color:var(--mut);margin-bottom:6px}
+.modal input[type=text],.modal input[type=number]{width:100%;background:transparent;border:0;border-bottom:1.5px solid var(--line2);padding:8px 2px;font-size:1.25rem;font-weight:700;margin-bottom:22px}
+.modal input:focus{outline:0;border-color:var(--fg)}
+.goalrow{display:flex;align-items:baseline;gap:10px}
+.goalrow input{width:120px}
+.goalrow span{font-family:var(--serif);font-size:1.7rem;font-weight:800;color:var(--mut)}
+.err{font-weight:700;font-size:.85rem;min-height:1.3em;margin:-12px 0 12px}
+.modal .btn.solid{width:100%;padding:14px;font-size:1rem}
+.opts{display:flex;gap:10px;margin:0 0 22px}
+.opts label{flex:1;margin:0;border:1px solid var(--line2);border-radius:14px;padding:12px 14px;cursor:pointer;color:var(--fg);font-size:.9rem}
+.opts label small{display:block;color:var(--mut);font-weight:600;font-size:.78rem}
+.opts input{margin-right:6px;accent-color:var(--fg)}
+.opts label:has(input:checked){border-color:var(--fg);background:var(--surf2)}
+.two{display:flex;gap:10px}
+.two .btn{flex:1;padding:13px}
+
+[hidden]{display:none!important}
+.count{margin-top:30px;border:1px solid var(--line2);border-radius:24px;padding:30px 34px;display:grid;grid-template-columns:1.1fr 1fr;gap:28px;align-items:center;background:radial-gradient(620px 260px at 10% 0%,var(--glow),transparent 70%),var(--surf)}
+.count:empty{display:none}
+.ck{color:var(--mut);font-weight:700;font-size:.9rem}
+.big{font-family:var(--serif);font-weight:800;font-size:clamp(3.6rem,8vw,6rem);line-height:.95;letter-spacing:-.03em;background:linear-gradient(180deg,var(--g1),var(--g2));-webkit-background-clip:text;background-clip:text;color:transparent;margin:6px 0 10px;padding-bottom:6px}
+.cd{font-weight:700}
+.cu{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.cu div{border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center;background:var(--bg)}
+.cu b{display:block;font-family:var(--serif);font-weight:800;font-size:1.9rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.cu small{color:var(--mut);font-weight:700;font-size:.78rem}
+.cn{color:var(--mut);font-size:.88rem;font-weight:600;margin-top:10px}
+.cacts{display:flex;gap:18px;margin-top:14px}
+.cform{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:18px 28px;align-items:center;justify-content:space-between}
+.cform h2{font-size:1.6rem}
+.cform p{color:var(--mut);margin-top:4px}
+.crow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.crow input[type=date]{border:1px solid var(--line2);background:var(--bg);border-radius:999px;padding:11px 18px;font-weight:700;color:var(--fg)}
+.crow input[type=date]:focus{outline:0;border-color:var(--fg)}
+@media(max-width:900px){.count{grid-template-columns:1fr;padding:24px 20px}}
+.toprow{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:12px;margin-top:30px;align-items:stretch}
+.toprow .count{margin-top:0;grid-template-columns:1fr;gap:20px}
+.tile.goal{display:flex;flex-direction:column;justify-content:center;border-radius:24px;padding:28px}
+.tile.goal .v{font-size:clamp(3.4rem,7vw,5rem);line-height:1}
+.tile.goal .v s{font-size:1.5rem}
+.subtabs{display:flex;gap:10px;margin-top:12px;overflow-x:auto;padding:2px 2px 6px}
+.stab{flex:1 1 0;min-width:96px;position:relative;overflow:hidden;border:1.5px solid var(--line2);border-radius:20px;padding:22px 14px 18px;text-align:center;background:var(--surf);transition:.15s}
+.stab b{display:block;font-family:var(--serif);font-weight:800;font-size:clamp(1.15rem,3.6vw,1.75rem);line-height:1.2}
+.stab small{display:block;color:var(--mut);font-weight:700;font-size:.8rem;margin-top:2px}
+.stab:hover{border-color:var(--fg)}
+.stab.on{background:var(--fg);border-color:var(--fg);color:var(--inv)}
+.stab.on small{color:var(--inv);opacity:.7}
+.stab i{position:absolute;left:0;bottom:0;height:4px;background:var(--fg)}
+.stab.on i{background:var(--inv);opacity:.55}
+.stab.add{flex:0 0 auto;min-width:0;padding:22px 24px;border-style:dashed;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;color:var(--mut)}
+.stab.add:hover{color:var(--fg)}
+.cn:empty{display:none}
+.big.txt{font-size:clamp(2.6rem,6vw,4rem);line-height:1.1}
+@media(max-width:900px){.toprow{grid-template-columns:1fr}.stab{padding:16px 8px 14px;border-radius:16px;min-width:84px}.stab.add{padding:16px 14px}}
+.views{display:flex;gap:6px;margin-top:24px;padding:5px;border:1px solid var(--line);border-radius:999px;background:var(--surf);width:max-content;max-width:100%;overflow-x:auto}
+.vtab{padding:11px 24px;border-radius:999px;font-weight:800;font-size:.95rem;color:var(--mut);white-space:nowrap}
+.vtab.on{background:var(--fg);color:var(--inv)}
+.vtab:not(.on):hover{color:var(--fg)}
+#sylView .subtabs{margin-top:14px}
+.panel{border:1px solid var(--line);background:var(--surf);border-radius:20px;padding:22px 24px;margin-top:12px}
+.panel h2{font-size:1.4rem}
+.hint{color:var(--mut);font-size:.88rem;font-weight:600;margin:4px 0 14px}
+.frm{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.frm label{display:flex;flex-direction:column;gap:5px;font-size:.78rem;font-weight:700;color:var(--mut)}
+.frm input,.frm select{border:1px solid var(--line2);background:var(--bg);border-radius:12px;padding:10px 12px;font-weight:700;color:var(--fg);font-size:.92rem;min-width:0}
+.frm input:focus,.frm select:focus{outline:0;border-color:var(--fg)}
+.frm select option{background:var(--bg);color:var(--fg)}
+.frm .w1{width:88px}.frm .w2{width:150px}.frm .grow{flex:1 1 220px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:10px 18px;background:var(--bg)}
+.stat small{display:block;color:var(--mut);font-weight:700;font-size:.76rem}
+.stat b{font-family:var(--serif);font-size:1.6rem;font-weight:800;line-height:1.2}
+.ch{width:100%;height:auto;display:block}
+.ch text{fill:var(--mut);font-size:11px;font-weight:700;font-family:var(--sans)}
+.ch .gl{stroke:var(--line);stroke-width:1}
+.ch .goal{stroke:var(--line2);stroke-width:1.5;stroke-dasharray:5 5}
+.ch .ln{fill:none;stroke:var(--fg);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.ch .dot{fill:var(--bg);stroke:var(--fg);stroke-width:2.5}
+.tblw{overflow-x:auto}
+.tbl{width:100%;border-collapse:collapse;font-size:.9rem;font-weight:600;min-width:520px}
+.tbl th{color:var(--mut);font-size:.78rem;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl td{padding:10px;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right}
+.mfilt{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.mfilt select{appearance:none;border:1px solid var(--line);background:var(--surf);padding:9px 16px;border-radius:999px;font-weight:700;font-size:.88rem;color:var(--fg)}
+.mfilt select option{background:var(--bg);color:var(--fg)}
+.mcard{display:flex;gap:14px;align-items:flex-start;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:10px;background:var(--surf)}
+.mcard .mb{flex:1;min-width:0}
+.mcard b{font-size:1rem}
+.mcard p{color:var(--mut);font-weight:600;font-size:.88rem;margin-top:3px;overflow-wrap:anywhere}
+.mcard.fixed b{text-decoration:line-through;color:var(--mut)}
+.tag{display:inline-block;border:1px solid var(--line2);border-radius:999px;padding:2px 10px;font-size:.74rem;font-weight:800;margin:0 6px 6px 0}
+@media(max-width:900px){.panel{padding:18px 16px}.views{width:100%}.vtab{flex:1;padding:10px 6px;font-size:.82rem;text-align:center}}
+.scrim{display:none}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;bottom:0;width:300px;z-index:40;transform:translateX(-102%);transition:transform .25s}
+  .side.open{transform:none}
+  .scrim.show{display:block;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:35}
+  .top{display:flex}
+  .content{padding:28px 18px}
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .uh .mini{display:none}
+  .modal{padding:30px 24px}
+  footer{padding:24px 18px 48px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<div class="veil" id="veil" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="modal">
+    <h2 id="mt">Name your own JEE tracker</h2>
+    <p>Tell us who you are and the score you are aiming for. You can change both anytime.</p>
+    <label for="inName">Your name</label>
+    <input id="inName" type="text" maxlength="30" autocomplete="given-name" placeholder="e.g. Aarav">
+    <label for="inGoal">Your goal</label>
+    <div class="goalrow"><input id="inGoal" type="number" min="1" max="300" inputmode="numeric" placeholder="250"><span>/ 300</span></div>
+    <div class="err" id="err"></div>
+    <button class="btn solid" id="begin">Start tracking</button>
+  </div>
+</div>
+
+<div class="veil" id="dlg" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="modal">
+    <h2 id="dTitle" style="font-size:1.8rem"></h2>
+    <p id="dDesc"></p>
+    <label for="dName" id="dLabel"></label>
+    <input id="dName" type="text" maxlength="40">
+    <div id="dTypeWrap">
+      <label>Field type</label>
+      <div class="opts">
+        <label><input type="radio" name="dtype" value="check" checked>Tick box<small>Done or not done</small></label>
+        <label><input type="radio" name="dtype" value="text">Text<small>Write a note per topic</small></label>
+      </div>
+    </div>
+    <div class="err" id="dErr"></div>
+    <div class="two"><button class="btn" id="dCancel">Cancel</button><button class="btn solid" id="dOk">Add</button></div>
+  </div>
+</div>
+
+<div class="app">
+  <aside class="side" id="side">
+    <div class="logo"><i><svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="50" cy="50" r="44" stroke-opacity=".55" stroke-width="2.4"/><g transform="translate(0 -2.5)" stroke-width="5.6"><path d="M25 27H75M25 27V34M75 27V34M31 29L50 52L69 29M50 50V69Q50 80 40 80Q31 80 29 72"/></g></svg></i><span>Your own<br>JEE tracker</span></div>
+    <button class="newbtn" data-act="addsubject"><span style="font-size:1.1rem">+</span> New subject</button>
+    <div class="scroll">
+      <div class="sec">Subjects</div>
+      <div id="subjList"></div>
+      <div class="sec" id="unitHead">Units</div>
+      <div class="unitnav" id="unitNav"></div>
+    </div>
+    <button class="newbtn" id="installBtn" hidden style="margin-top:10px"><span style="font-size:1.1rem">⇩</span> Install as an app</button>
+    <div class="me">
+      <div class="av" id="av">?</div>
+      <div class="t"><b id="meName">Guest</b><small id="meGoal">Set your goal</small></div>
+      <button class="ic" id="editProfile" title="Edit name and goal" aria-label="Edit name and goal">✎</button>
+      <button class="ic" id="theme" title="Switch theme" aria-label="Switch theme">☾</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <div class="main">
+    <header class="top">
+      <button class="ic" id="burger" aria-label="Open menu">☰</button>
+      <b>Your own JEE tracker</b>
+      <button class="ic" id="theme2" aria-label="Switch theme">☾</button>
+    </header>
+    <div class="content">
+      <h1 class="hello" id="hello">Hello</h1>
+      <p class="sub">The full <b>JEE Main 2027</b> syllabus for Maths, Physics and Chemistry, split into topics. Rate each topic’s importance, mark the ones that matter, and tick off theory, PYQs and numericals. Want more? Add your own column, topic, unit or subject.</p>
+
+      <div class="toprow">
+        <div class="count" id="count"></div>
+        <div class="tile goal"><small>Your goal</small><div class="v"><span id="tGoal">0</span><s>/ 300</s></div><button class="link" id="editGoal" style="align-self:flex-start;margin-top:10px">Edit name and goal</button></div>
+      </div>
+
+      <div class="views" id="views" role="tablist" aria-label="Sections"></div>
+
+      <div id="sylView">
+        <div class="subtabs" id="subtabs" role="tablist" aria-label="Subjects"></div>
+        <div class="bar" id="bar"></div>
+        <div class="bar2" id="bar2"></div>
+        <div id="units"></div>
+      </div>
+      <div id="mockView" hidden></div>
+      <div id="mistView" hidden></div>
+    </div>
+    <footer>
+      <span>Progress is saved in this browser only.</span>
+      <div><button class="link" id="exp">Export backup</button><button class="link" id="imp">Import backup</button><button class="link" id="reset">Reset everything</button></div>
+      <input type="file" id="file" accept="application/json" hidden>
+    </footer>
+  </div>
+</div>
+
+<script>
+(function(){
+const KEY='jee-tracker-v2',OLD='jee-tracker-v1',TKEY='jee-theme';
+const $=s=>document.querySelector(s);
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- JEE Main 2027 syllabus (Paper 1, B.E./B.Tech.) ---------- */
+const SYL={
+Maths:[
+['Sets, relations and functions',['Sets and their representation','Union, intersection and complement of sets','Algebraic properties of sets','Power set','Relations and their types','Equivalence relations','Functions: one-one, into and onto','Composition of functions']],
+['Complex numbers and quadratic equations',['Complex numbers as ordered pairs of reals','Form a + ib and representation in a plane','Argand diagram','Algebra of complex numbers','Modulus and argument (amplitude)','Quadratic equations in real and complex number systems','Relations between roots and coefficients','Nature of roots','Forming quadratic equations with given roots']],
+['Matrices and determinants',['Matrices and algebra of matrices','Types of matrices','Determinants of order two and three','Evaluation of determinants','Area of triangles using determinants','Adjoint and inverse of a square matrix','Test of consistency','Solving linear equations using matrices']],
+['Permutations and combinations',['Fundamental principle of counting','Permutations, meaning of P(n, r)','Combinations, meaning of C(n, r)','Simple applications']],
+['Binomial theorem and its simple applications',['Binomial theorem for a positive integral index','General term','Middle term','Simple applications']],
+['Sequence and series',['Arithmetic and geometric progressions','Insertion of arithmetic means','Insertion of geometric means','Relation between A.M. and G.M.']],
+['Limit, continuity and differentiability',['Real-valued functions and algebra of functions','Polynomial, rational, trigonometric, logarithmic and exponential functions','Inverse functions','Graphs of simple functions','Limits','Continuity','Differentiability','Differentiation of sum, difference, product and quotient','Differentiation of trigonometric, inverse trigonometric, logarithmic and exponential functions','Composite and implicit functions','Derivatives of order up to two','Rate of change of quantities','Monotonic increasing and decreasing functions','Maxima and minima of functions of one variable']],
+['Integral calculus',['Integral as an anti-derivative','Fundamental integrals','Integration by substitution','Integration by parts','Integration by partial fractions','Integration using trigonometric identities','Standard integrals of the type dx/(x²+a²), dx/√(a²−x²) and similar','Integrals of √(a²±x²) and √(x²−a²)','Fundamental theorem of calculus','Properties of definite integrals','Evaluation of definite integrals','Area of regions bounded by simple curves']],
+['Differential equations',['Order and degree of ordinary differential equations','Separation of variables','Homogeneous differential equations','Linear equation dy/dx + p(x)y = q(x)']],
+['Co-ordinate geometry',['Cartesian coordinates, distance and section formulae','Locus and its equation','Slope, parallel and perpendicular lines','Intercepts of a line on the axes','Straight line: forms of equations','Intersection of lines and angles between lines','Concurrence of three lines','Distance of a point from a line','Centroid, orthocentre and circumcentre of a triangle','Circle: standard and general form','Circle with end points of a diameter given','Intersection of a line and a circle','Parabola in standard form','Ellipse in standard form','Hyperbola in standard form']],
+['Three dimensional geometry',['Coordinates of a point in space','Distance between two points','Section formula','Direction ratios and direction cosines','Angle between two intersecting lines','Equation of a line','Skew lines and shortest distance between them']],
+['Vector algebra',['Vectors and scalars','Addition of vectors','Components of a vector in 2D and 3D','Scalar product','Vector product']],
+['Statistics and probability',['Measures of dispersion','Mean, median and mode of grouped and ungrouped data','Standard deviation, variance and mean deviation','Probability of an event','Addition and multiplication theorems of probability','Bayes’ theorem','Probability distribution of a random variable']],
+['Trigonometry',['Trigonometrical identities and functions','Inverse trigonometrical functions and their properties']]
+],
+Physics:[
+['Units and measurements',['Units, system of units, SI units','Fundamental and derived units','Least count and significant figures','Errors in measurements','Dimensions of physical quantities','Dimensional analysis and its applications']],
+['Kinematics',['Frame of reference','Motion in a straight line, speed and velocity','Uniform and non-uniform motion','Uniformly accelerated motion and its relations','Velocity-time and position-time graphs','Relative velocity','Motion in a plane','Projectile motion','Uniform circular motion']],
+['Laws of motion',['Force, inertia and Newton’s first law','Momentum and Newton’s second law','Impulse and Newton’s third law','Conservation of linear momentum','Equilibrium of concurrent forces','Static and kinetic friction, laws of friction','Rolling friction','Dynamics of uniform circular motion, centripetal force','Vehicle on a level circular road','Vehicle on a banked road']],
+['Work, energy and power',['Work done by a constant and a variable force','Kinetic and potential energies','Work-energy theorem','Power','Potential energy of a spring','Conservation of mechanical energy','Conservative and non-conservative forces','Motion in a vertical circle','Elastic and inelastic collisions in 1D and 2D']],
+['Rotational motion',['Centre of mass of a two-particle system and rigid body','Moment of a force, torque','Angular momentum and its conservation','Moment of inertia and radius of gyration','Moments of inertia of simple geometrical objects','Parallel and perpendicular axes theorems','Equilibrium of rigid bodies','Rigid body rotation and equations of rotational motion','Comparison of linear and rotational motion']],
+['Gravitation',['Universal law of gravitation','Acceleration due to gravity and its variation with altitude and depth','Kepler’s laws of planetary motion','Gravitational potential energy and potential','Escape velocity','Satellite: orbital velocity, time period and energy']],
+['Properties of solids and liquids',['Elastic behaviour, stress-strain relationship, Hooke’s law','Young’s modulus, bulk modulus and modulus of rigidity','Pressure due to a fluid column and Pascal’s law','Viscosity, Stokes’ law and terminal velocity','Streamline and turbulent flow, critical velocity','Bernoulli’s principle and its applications','Surface energy and surface tension','Angle of contact, excess pressure, drops, bubbles, capillary rise','Heat, temperature and thermal expansion','Specific heat capacity and calorimetry','Change of state and latent heat','Heat transfer: conduction, convection and radiation']],
+['Thermodynamics',['Thermal equilibrium and temperature, zeroth law','Heat, work and internal energy','First law of thermodynamics','Isothermal and adiabatic processes','Second law: reversible and irreversible processes']],
+['Kinetic theory of gases',['Equation of state of a perfect gas','Work done on compressing a gas','Kinetic theory: assumptions and concept of pressure','Kinetic interpretation of temperature','RMS speed of gas molecules','Degrees of freedom and law of equipartition of energy','Specific heat capacities of gases','Mean free path and Avogadro’s number']],
+['Oscillations and waves',['Periodic motion: time period, frequency, displacement','Simple harmonic motion and its equation, phase','Oscillations of a spring','Energy in S.H.M.','Simple pendulum and its time period','Wave motion: longitudinal and transverse waves','Speed of a travelling wave and displacement relation','Superposition and reflection of waves','Standing waves in strings and organ pipes, harmonics','Beats']],
+['Electrostatics',['Conservation of charge and Coulomb’s law','Forces between multiple charges, continuous charge distribution','Electric field and field lines','Electric dipole and torque on a dipole','Electric flux and Gauss’s law','Gauss’s law: wire, plane sheet and spherical shell','Electric potential and potential difference','Equipotential surfaces','Electrical potential energy of charges and a dipole','Conductors, insulators and dielectrics','Capacitors and combinations','Parallel plate capacitor with and without dielectric','Energy stored in a capacitor']],
+['Current electricity',['Electric current, drift velocity and mobility','Ohm’s law and electrical resistance','I-V characteristics of Ohmic and non-ohmic conductors','Resistivity, conductivity and temperature dependence','Electrical energy and power','Series and parallel combinations of resistors','EMF, internal resistance and potential difference of a cell','Combination of cells','Kirchhoff’s laws and applications','Wheatstone bridge and metre bridge']],
+['Magnetic effects of current and magnetism',['Biot-Savart law and circular current loop','Ampere’s law: straight wire and solenoid','Force on a moving charge in magnetic and electric fields','Force on a current-carrying conductor','Force between parallel currents, definition of ampere','Torque on a current loop','Moving coil galvanometer and its sensitivity','Conversion to ammeter and voltmeter','Current loop as a magnetic dipole','Bar magnet as an equivalent solenoid, field lines','Field due to a magnetic dipole, torque on a dipole','Para-, dia- and ferromagnetic substances, effect of temperature']],
+['Electromagnetic induction and alternating currents',['Faraday’s law, induced emf and current','Lenz’s law and eddy currents','Self and mutual inductance','Alternating currents, peak and RMS values','Reactance and impedance','LCR series circuit and resonance','Power in AC circuits and wattless current','AC generator and transformer']],
+['Electromagnetic waves',['Displacement current','Characteristics and transverse nature of EM waves','Electromagnetic spectrum','Applications of EM waves']],
+['Optics',['Reflection of light, spherical mirrors, mirror formula','Refraction at plane and spherical surfaces','Thin lens formula and lens maker formula','Total internal reflection and applications','Magnification, power of a lens, lenses in contact','Refraction through a prism','Microscope and astronomical telescope','Wavefront and Huygens’ principle','Young’s double-slit experiment and fringe width','Coherent sources and sustained interference','Diffraction due to a single slit','Polarization, Brewster’s law and Polaroid']],
+['Dual nature of matter and radiation',['Dual nature of radiation, photoelectric effect','Hertz and Lenard’s observations','Einstein’s photoelectric equation','Matter waves and de Broglie relation']],
+['Atoms and nuclei',['Alpha-particle scattering and Rutherford’s model','Bohr model and energy levels','Hydrogen spectrum','Composition and size of nucleus, atomic masses','Mass-energy relation and mass defect','Binding energy per nucleon and its variation','Nuclear fission and fusion']],
+['Electronic devices',['Semiconductors','Semiconductor diode I-V characteristics','Diode as a rectifier','LED, photodiode and solar cell','Zener diode as a voltage regulator','Logic gates: OR, AND, NOT, NAND, NOR']],
+['Experimental skills',['Vernier calipers: diameter and depth of a vessel','Screw gauge: thickness or diameter of sheet or wire','Simple pendulum: energy dissipation graph','Metre scale: mass by principle of moments','Young’s modulus of a metallic wire','Surface tension by capillary rise, effect of detergents','Viscosity by terminal velocity of a sphere','Speed of sound using a resonance tube','Specific heat of a solid and a liquid by mixtures','Resistivity of a wire using a metre bridge','Resistance of a wire using Ohm’s law','Galvanometer resistance and figure of merit','Focal length of convex, concave mirror and convex lens (parallax)','Angle of deviation vs angle of incidence for a prism','Refractive index of a glass slab (travelling microscope)','Characteristic curves of a p-n junction diode','Characteristic curves of a Zener diode, breakdown voltage','Identify diode, LED, resistor and capacitor']]
+],
+Chemistry:[
+['Some basic concepts in chemistry',['Matter and its nature, Dalton’s atomic theory','Atom, molecule, element and compound','Laws of chemical combination','Atomic and molecular masses','Mole concept and molar mass','Percentage composition','Empirical and molecular formulae','Chemical equations and stoichiometry'],'Physical'],
+['Atomic structure',['Electromagnetic radiation and photoelectric effect','Spectrum of the hydrogen atom','Bohr model, derivations and limitations','Dual nature of matter, de Broglie relationship','Heisenberg uncertainty principle','Quantum mechanical model of the atom','Atomic orbitals, variation of ψ and ψ² with r for 1s and 2s','Quantum numbers and their significance','Shapes of s, p and d orbitals','Electron spin and spin quantum number','Aufbau principle, Pauli’s exclusion principle and Hund’s rule','Electronic configuration and extra stability of half-filled and filled orbitals'],'Physical'],
+['Chemical bonding and molecular structure',['Kossel-Lewis approach, ionic and covalent bonds','Ionic bonding, lattice enthalpy','Electronegativity, Fajan’s rule and dipole moment','VSEPR theory and shapes of simple molecules','Valence bond theory and hybridization (s, p, d)','Resonance','Molecular orbital theory, LCAOs','MO configurations of homonuclear diatomics, bond order','Bond length and bond energy','Metallic bonding','Hydrogen bonding and its applications'],'Physical'],
+['Chemical thermodynamics',['System, surroundings, extensive and intensive properties','State functions, entropy and types of processes','First law: work, heat, internal energy, enthalpy','Heat capacity and molar heat capacity','Hess’s law of constant heat summation','Enthalpies of bond dissociation, combustion, formation and other processes','Second law: spontaneity of processes','ΔS of the universe and ΔG of the system','Standard Gibbs energy change and equilibrium constant'],'Physical'],
+['Solutions',['Methods of expressing concentration','Vapour pressure of solutions and Raoult’s law','Ideal and non-ideal solutions, vapour pressure plots','Colligative properties of dilute solutions','Relative lowering of vapour pressure','Depression of freezing point and elevation of boiling point','Osmotic pressure','Molecular mass from colligative properties','Abnormal molar mass and van’t Hoff factor'],'Physical'],
+['Equilibrium',['Dynamic equilibrium and physical equilibria','Henry’s law','Law of chemical equilibrium, Kp and Kc','Significance of ΔG and ΔG° in equilibrium','Factors affecting equilibrium, Le Chatelier’s principle','Weak and strong electrolytes, ionization','Arrhenius, Bronsted-Lowry and Lewis acids and bases','Acid-base equilibria and multistage ionization','Ionization of water and pH scale','Common ion effect','Hydrolysis of salts and pH of their solutions','Solubility of sparingly soluble salts, solubility product','Buffer solutions'],'Physical'],
+['Redox reactions and electrochemistry',['Electronic concepts of oxidation and reduction','Oxidation number and balancing of redox reactions','Electrolytic and metallic conduction','Conductance, molar conductivity and variation with concentration','Kohlrausch’s law and its applications','Electrolytic and Galvanic cells, types of electrodes','Electrode potentials, half-cell and cell reactions','Emf of a Galvanic cell and its measurement','Nernst equation and its applications','Cell potential and Gibbs energy change','Dry cell, lead accumulator and fuel cells'],'Physical'],
+['Chemical kinetics',['Rate of a reaction and factors affecting it','Elementary and complex reactions','Order and molecularity','Rate law and rate constant with units','Zero and first-order reactions: differential and integral forms','Half-lives','Effect of temperature, Arrhenius theory, activation energy','Collision theory of bimolecular gaseous reactions'],'Physical'],
+['Classification of elements and periodicity in properties',['Modern periodic law and present form of the periodic table','s, p, d and f block elements','Atomic and ionic radii','Ionization enthalpy and electron gain enthalpy','Valence, oxidation states and chemical reactivity'],'Inorganic'],
+['p-block elements',['General trends across periods and down groups','Unique behaviour of the first element in each group','Group 13 elements','Group 14 elements','Group 15 elements','Group 16 elements','Group 17 elements','Group 18 elements'],'Inorganic'],
+['d- and f-block elements',['Transition elements: general introduction, electronic configuration, occurrence','Trends in first-row transition elements','Oxidation states, atomic radii and ionization enthalpy','Colour, catalytic behaviour and magnetic properties','Complex formation, interstitial compounds and alloys','K₂Cr₂O₇: preparation, properties and uses','KMnO₄: preparation, properties and uses','Lanthanoids and lanthanoid contraction','Actinoids'],'Inorganic'],
+['Coordination compounds',['Werner’s theory, ligands and coordination number','Denticity and chelation','IUPAC nomenclature of mononuclear compounds','Isomerism','Valence bond approach','Crystal field theory basics','Colour and magnetic properties','Importance of coordination compounds'],'Inorganic'],
+['Purification and characterisation of organic compounds',['Crystallization, sublimation and distillation','Differential extraction and chromatography','Qualitative analysis: nitrogen, sulphur, phosphorus and halogens','Quantitative analysis: estimation of elements','Empirical and molecular formula calculations','Numerical problems in organic quantitative analysis'],'Organic'],
+['Some basic principles of organic chemistry',['Tetravalency of carbon, shapes and hybridization','Classification by functional groups','Homologous series','Structural isomerism and stereoisomerism','Nomenclature: trivial and IUPAC','Homolytic and heterolytic fission, free radicals','Carbocations, carbanions and their stability','Electrophiles and nucleophiles','Inductive and electromeric effect','Resonance and hyperconjugation','Substitution, addition, elimination and rearrangement'],'Organic'],
+['Hydrocarbons',['Classification, isomerism, IUPAC nomenclature','Alkanes: conformations (Sawhorse and Newman) and halogenation','Alkenes: geometrical isomerism','Alkenes: electrophilic addition, Markownikoff and peroxide effect','Alkenes: ozonolysis and polymerization','Alkynes: acidic character and additions','Aromatic hydrocarbons: benzene structure and aromaticity','Electrophilic substitution: halogenation, nitration','Friedel-Crafts alkylation and acylation','Directive influence of functional groups'],'Organic'],
+['Organic compounds containing halogens',['Preparation, properties and reactions','Nature of the C-X bond','Mechanisms of substitution reactions','Chloroform, iodoform, freons and DDT: uses and environmental effects'],'Organic'],
+['Organic compounds containing oxygen',['Alcohols: identification of 1°, 2°, 3° and dehydration','Phenols: acidic nature and electrophilic substitution','Reimer-Tiemann reaction','Ethers: structure','Aldehydes and ketones: nucleophilic addition to >C=O','Relative reactivity of aldehydes and ketones','Addition of HCN, NH₃ and derivatives','Grignard reagent, oxidation and reduction','Wolff-Kishner and Clemmensen reduction','Acidity of α-hydrogen','Aldol condensation, Cannizzaro and Haloform reactions','Tests to distinguish aldehydes and ketones','Carboxylic acids: acidic strength and its factors'],'Organic'],
+['Organic compounds containing nitrogen',['Amines: nomenclature, classification and structure','Basic character of amines','Identification of primary, secondary and tertiary amines','Diazonium salts and their importance in synthesis'],'Organic'],
+['Biomolecules',['General introduction and importance','Carbohydrates: aldoses, ketoses, glucose and fructose','Oligosaccharides: sucrose, lactose and maltose','Proteins: α-amino acids, peptide bond, polypeptides','Protein structure and denaturation','Enzymes','Vitamins: classification and functions','Nucleic acids: DNA and RNA','Hormones'],'Organic'],
+['Principles related to practical chemistry',['Detection of N, S and halogens in organic compounds','Detection of hydroxyl, carbonyl, carboxyl and amino groups','Preparation of Mohr’s salt and potash alum','Preparation of acetanilide, p-nitroacetanilide, aniline yellow, iodoform','Titrimetric exercises: acids, bases and indicators','Oxalic acid vs KMnO₄ and Mohr’s salt vs KMnO₄','Qualitative salt analysis: cations','Qualitative salt analysis: anions','Enthalpy of solution of CuSO₄','Enthalpy of neutralization of strong acid and strong base','Preparation of lyophilic and lyophobic sols','Kinetic study of iodide ions with hydrogen peroxide'],'Practical']
+]};
+
+/* ---------- State ---------- */
+const CORE=[{id:'theory',label:'Theory',type:'check',core:true},{id:'pyq',label:'PYQ',type:'check',core:true},{id:'num',label:'Numerical',type:'check',core:true},{id:'rev',label:'Revision',type:'check',core:false}];
+const REV={id:'rev',label:'Revision',type:'check',core:false};
+const mkTopic=n=>({id:uid(),name:n,imp:0,mark:false,done:{},txt:{}});
+function mkSubject(name,units,custom){
+  return{id:uid(),name,custom:!!custom,cols:CORE.map(c=>({...c})),
+    units:(units||[]).map((u,i)=>({id:uid(),name:u[0],grp:u[2]||'',no:custom?0:i+1,topics:u[1].map(mkTopic)}))};
+}
+function fresh(){
+  const s={name:'',goal:0,active:0,subjects:Object.entries(SYL).map(([n,u])=>mkSubject(n,u,false))};
+  s.revAdded=true;
+  return s;
+}
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&Array.isArray(d.subjects)&&d.subjects.length){if(!d.revAdded){d.subjects.forEach(sb=>{if(!sb.cols.some(c=>c.id==='rev')){const i=sb.cols.map(c=>c.id).lastIndexOf('num');sb.cols.splice(i+1,0,{id:'rev',label:'Revision',type:'check',core:false})}});d.subjects.forEach(sb=>sb.units.forEach(u=>u.topics.forEach(t=>{t.imp=0})));d.revAdded=true}d.subjects.forEach(sb=>{const seen={};sb.cols=sb.cols.filter(c=>seen[c.id]?false:(seen[c.id]=1))});return d}}}catch(e){}return fresh()}
+let S=load();
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const F={q:'',imp:0,mark:false,weak:false,status:'all',pend:'any'};
+const openU=new Set();
+const sub=()=>S.subjects[S.active]||S.subjects[0];
+const checks=sb=>sb.cols.filter(c=>c.type!=='text');
+const topicDone=(sb,t)=>{const k=checks(sb);return k.length>0&&k.every(c=>t.done[c.id])};
+
+function stats(sb){
+  let cells=0,tick=0,topics=0,full=0,marks=0;
+  (sb?[sb]:S.subjects).forEach(s=>{const k=checks(s);s.units.forEach(u=>u.topics.forEach(t=>{
+    topics++;if(t.mark)marks++;let all=k.length>0;
+    k.forEach(c=>{cells++;if(t.done[c.id])tick++;else all=false});
+    if(all)full++;}))});
+  return{cells,tick,topics,full,marks,pct:cells?Math.round(tick/cells*100):0};
+}
+
+/* ---------- Theme ---------- */
+function setTheme(t){document.documentElement.dataset.theme=t;const mt=document.querySelector('meta[name=theme-color]');if(mt)mt.content=t==='dark'?'#000000':'#ffffff';try{localStorage.setItem(TKEY,t)}catch(e){}
+  const ic=t==='dark'?'☀':'☾';$('#theme').textContent=ic;$('#theme2').textContent=ic;
+  const l=t==='dark'?'Switch to white theme':'Switch to black theme';$('#theme').title=l;$('#theme2').title=l}
+let th='dark';try{th=localStorage.getItem(TKEY)||'dark'}catch(e){}
+const toggleTheme=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+$('#theme').onclick=toggleTheme;$('#theme2').onclick=toggleTheme;
+
+/* ---------- Render ---------- */
+function greet(){const h=new Date().getHours();return h<12?'Good morning':h<18?'Good afternoon':'Good evening'}
+function renderHero(){
+  const a=stats();
+  $('#hello').textContent=greet()+(S.name?', '+S.name:'');
+  $('#tGoal').textContent=S.goal||0;
+  
+  $('#av').textContent=(S.name||'?').trim().charAt(0).toUpperCase();
+  $('#meName').textContent=S.name||'Guest';
+  $('#meGoal').textContent=S.goal?('Goal '+S.goal+' / 300'):'Set your goal';
+}
+function renderSide(){
+  $('#subjList').innerHTML=S.subjects.map((s,i)=>`<button class="nv ${i===S.active?'on':''}" data-act="tab" data-i="${i}"><span>${esc(s.name)}</span><em>${stats(s).pct}%</em></button>`).join('');
+  const sb=sub();
+  $('#unitHead').textContent='Units in '+sb.name;
+  $('#unitNav').innerHTML=sb.units.length?sb.units.map(u=>{
+    const k=checks(sb),tot=u.topics.length*k.length;let tk=0;u.topics.forEach(t=>k.forEach(c=>{if(t.done[c.id])tk++}));
+    return `<button class="nv" data-act="goto" data-u="${u.id}"><span>${u.no?u.no+'. ':''}${esc(u.name)}</span><em>${tot?Math.round(tk/tot*100):0}%</em></button>`}).join(''):'<div class="nv" style="color:var(--mut)">No units yet</div>';
+}
+function renderBar(){
+  const sb=sub();
+  const pend=['<option value="any">Pending in: any</option>'].concat(checks(sb).map(c=>`<option value="${c.id}" ${F.pend===c.id?'selected':''}>Pending in: ${esc(c.label)}</option>`)).join('');
+  $('#bar').innerHTML=`
+   <input type="search" id="q" placeholder="Search topics or units" value="${esc(F.q)}" aria-label="Search">
+   <div class="grp" role="group" aria-label="Importance">${[[0,'All'],[3,'★★★'],[2,'★★'],[1,'★']].map(([v,l])=>`<button class="pill ${F.imp===v?'on':''}" data-act="fimp" data-v="${v}">${l}</button>`).join('')}</div>
+   <button class="pill ${F.mark?'on':''}" data-act="fmark">⚑ Marked</button>
+   <button class="pill ${F.weak?'on':''}" data-act="fweak" title="Topics you rated 3 stars that are not finished yet">Weak topics</button>
+   <select id="fstatus" aria-label="Status"><option value="all" ${F.status==='all'?'selected':''}>All topics</option><option value="todo" ${F.status==='todo'?'selected':''}>Not finished</option><option value="done" ${F.status==='done'?'selected':''}>Finished</option></select>
+   <select id="fpend" aria-label="Pending column">${pend}</select>`;
+  $('#bar2').innerHTML=`<button class="link" data-act="addcol">+ Add your own field to ${esc(sb.name)}</button><button class="link" data-act="expand">Expand all</button><button class="link" data-act="collapse">Collapse all</button><button class="link" data-act="fclear">Clear filters</button>`+(sb.custom?`<button class="link" data-act="delsubject">Delete this subject</button>`:'');
+}
+const filtering=()=>F.q||F.imp||F.mark||F.weak||F.status!=='all'||F.pend!=='any';
+function show(sb,u,t){
+  const q=F.q.trim().toLowerCase();
+  if(q&&!(t.name.toLowerCase().includes(q)||u.name.toLowerCase().includes(q)))return false;
+  if(F.imp&&t.imp!==F.imp)return false;
+  if(F.mark&&!t.mark)return false;
+  const d=topicDone(sb,t);
+  if(F.weak&&!(t.imp===3&&!d))return false;
+  if(F.status==='done'&&!d)return false;
+  if(F.status==='todo'&&d)return false;
+  if(F.pend!=='any'&&sb.cols.some(c=>c.id===F.pend)&&t.done[F.pend])return false;
+  return true;
+}
+const colW=c=>c.type==='text'?170:92;
+function renderUnits(){
+  const sb=sub(),k=checks(sb);
+  const tpl='minmax(260px,1fr) 112px 56px '+sb.cols.map(c=>colW(c)+'px').join(' ')+' 40px';
+  const minw=260+112+56+40+sb.cols.reduce((a,c)=>a+colW(c),0);
+  let html='',shown=0;
+  sb.units.forEach(u=>{
+    const vis=u.topics.filter(t=>show(sb,u,t));
+    if(filtering()&&!vis.length)return;
+    shown++;
+    const tot=u.topics.length*k.length;let tk=0;u.topics.forEach(t=>k.forEach(c=>{if(t.done[c.id])tk++}));
+    const pct=tot?Math.round(tk/tot*100):0;
+    const isOpen=openU.has(u.id)||(filtering()&&vis.length>0);
+    const head=`<div class="tr th"><div>Topic</div><div class="c">Importance</div><div class="c">Mark</div>`+
+      sb.cols.map(c=>`<div class="c"><span>${esc(c.label)}${c.core?'':`<button class="x" data-act="delcol" data-c="${c.id}" title="Remove field" aria-label="Remove ${esc(c.label)}">×</button>`}</span></div>`).join('')+`<div class="c"><button class="x" data-act="addcol" title="Add your own field" aria-label="Add your own field" style="font-size:1.3rem">+</button></div></div>`;
+    const rows=vis.map(t=>`<div class="tr ${topicDone(sb,t)?'fin':''}" data-u="${u.id}" data-t="${t.id}">
+      <div class="tn">${esc(t.name)}</div>
+      <div class="c stars" role="group" aria-label="Importance">${[1,2,3].map(n=>`<button class="st ${t.imp>=n?'on':''}" data-act="imp" data-v="${n}" aria-label="${n} star">★</button>`).join('')}</div>
+      <div class="c"><button class="mark ${t.mark?'on':''}" data-act="mark" aria-pressed="${!!t.mark}" aria-label="Mark topic">⚑</button></div>
+      ${sb.cols.map(c=>c.type==='text'
+        ?`<div class="c"><input class="cellt" type="text" data-c="${c.id}" value="${esc((t.txt&&t.txt[c.id])||'')}" placeholder="…" aria-label="${esc(c.label)}"></div>`
+        :`<div class="c"><button class="chk" data-act="chk" data-c="${c.id}" aria-pressed="${!!t.done[c.id]}" aria-label="${esc(c.label)}"></button></div>`).join('')}
+      <div class="c"><button class="x" data-act="deltopic" aria-label="Delete topic">×</button></div></div>`).join('');
+    html+=`<section class="unit ${isOpen?'open':''}" data-u="${u.id}">
+      <div class="uhw"><button class="uh" data-act="toggle" aria-expanded="${!!isOpen}">
+        <span class="nm"><h3>${u.no?u.no+'. ':''}${esc(u.name)}</h3><span class="tags">${u.grp?`<span>${esc(u.grp)}</span>`:''}<span>${u.topics.length} topics</span></span></span>
+        <span class="mini"><span style="width:${pct}%"></span></span><span class="pc">${pct}%</span><span class="chev"></span></button>
+        <button class="x" data-act="delunit" aria-label="Delete unit" style="margin-right:10px">×</button></div>
+      <div class="body"><div style="min-width:${minw}px;--tpl:${tpl}">${head}${rows}
+        <div class="add-t"><input type="text" placeholder="Add your own topic to this unit" data-add="${u.id}" maxlength="90"><button class="btn" data-act="addtopic" data-u="${u.id}">Add topic</button></div>
+      </div></div></section>`;
+  });
+  if(!shown)html=`<div class="empty">${sb.units.length?'No topics match these filters. Clear a filter to see more.':'This subject is empty. Add your first unit below.'}</div>`;
+  html+=`<div class="addunit"><input type="text" id="newUnit" placeholder="Add your own unit to ${esc(sb.name)}" maxlength="90"><button class="btn" data-act="addunit">Add unit</button></div>`;
+  $('#units').innerHTML=html;
+}
+function renderTabs(){
+  $('#subtabs').innerHTML=S.subjects.map((x,i)=>{const n=x.units.length,p=stats(x).pct;return `<button class="stab ${i===S.active?'on':''}" role="tab" aria-selected="${i===S.active}" data-act="tab" data-i="${i}"><b>${esc(x.name)}</b><small>${n} unit${n===1?'':'s'}</small><i style="width:${p}%"></i></button>`}).join('')+`<button class="stab add" data-act="addsubject" aria-label="New subject">+ New</button>`;
+}
+function renderAll(){renderViews();renderHero();renderSide();renderTabs();renderBar();renderUnits();renderCount()}
+function refresh(){save();renderHero();renderSide();renderTabs();renderUnits();tickCount()}
+
+/* ---------- Dialog ---------- */
+let dlgCb=null;
+function ask(o,cb){
+  $('#dTitle').textContent=o.title;$('#dDesc').textContent=o.desc||'';
+  $('#dLabel').textContent=o.label;$('#dName').value='';$('#dName').placeholder=o.ph||'';
+  $('#dTypeWrap').style.display=o.type?'block':'none';
+  const first=document.querySelector('input[name=dtype][value=check]');if(first)first.checked=true;
+  $('#dErr').textContent='';$('#dOk').textContent=o.ok||'Add';dlgCb=cb;
+  $('#dlg').classList.add('show');setTimeout(()=>$('#dName').focus(),50);
+}
+const closeDlg=()=>$('#dlg').classList.remove('show');
+$('#dOk').onclick=()=>{const n=$('#dName').value.trim();if(!n){$('#dErr').textContent='Enter a name to continue.';return}
+  const t=document.querySelector('input[name=dtype]:checked');closeDlg();dlgCb&&dlgCb(n,t?t.value:'check')};
+$('#dCancel').onclick=closeDlg;
+
+/* ---------- Events ---------- */
+function find(el){const row=el.closest('[data-t]');if(!row)return{};const sb=sub();const u=sb.units.find(x=>x.id===row.dataset.u);const t=u&&u.topics.find(x=>x.id===row.dataset.t);return{sb,u,t}}
+const closeSide=()=>{$('#side').classList.remove('open');$('#scrim').classList.remove('show')};
+$('#burger').onclick=()=>{$('#side').classList.add('open');$('#scrim').classList.add('show')};
+$('#scrim').onclick=closeSide;
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,sb=sub();
+  if(a==='setexam'){const v=($('#examIn')||{}).value,er=$('#examErr');
+    if(!v){er.textContent='Pick your exam date to continue.';return}
+    if(v<todayISO()){er.textContent='Pick today or a later date.';return}
+    const prev=S.exam&&S.exam>=todayISO();if(!(prev&&S.examStart))S.examStart=todayISO();
+    S.exam=v;editExam=false;save();renderCount();return}
+  if(a==='editexam'){editExam=true;renderCount();return}
+  if(a==='cancelexam'){editExam=false;renderCount();return}
+  if(a==='clearexam'){if(confirm('Remove your exam date?')){delete S.exam;delete S.examStart;editExam=false;save();renderCount()}return}
+  if(a==='view'){VIEW=b.dataset.v;renderViews();if(VIEW==='mocks')renderMocks();if(VIEW==='mist')renderMist();return}
+  if(a==='fweak'){F.weak=!F.weak;renderBar();renderUnits();return}
+  if(a==='addmock'){
+    const g=id=>{const v=$(id).value;return v===''?NaN:Math.round(+v)};
+    const m=g('#mkM'),p=g('#mkP'),c=g('#mkC'),er=$('#mkErr');
+    if([m,p,c].some(v=>isNaN(v)||v<-25||v>100)){er.textContent='Enter marks for all three subjects, between -25 and 100.';return}
+    const L=S.mocks=S.mocks||[];
+    L.push({id:uid(),name:($('#mkName').value.trim()||('Mock '+(L.length+1))).slice(0,40),date:$('#mkDate').value||todayISO(),m,p,c});
+    save();renderMocks();return}
+  if(a==='delmock'){if(confirm('Delete this test?')){S.mocks=(S.mocks||[]).filter(x=>x.id!==b.dataset.id);save();renderMocks()}return}
+  if(a==='addmist'){
+    const tp=$('#msTopic').value.trim(),er=$('#msErr');
+    if(!tp){er.textContent='Write the topic or question first.';return}
+    (S.mistakes=S.mistakes||[]).push({id:uid(),subj:$('#msSubj').value,topic:tp.slice(0,90),reason:$('#msReason').value,note:$('#msNote').value.trim().slice(0,200),date:todayISO(),fixed:false});
+    save();renderMist();return}
+  if(a==='mfix'){const id=b.closest('[data-m]').dataset.m;const x=(S.mistakes||[]).find(y=>y.id===id);if(x){x.fixed=!x.fixed;save();renderMistList()}return}
+  if(a==='delmist'){const id=b.closest('[data-m]').dataset.m;if(confirm('Delete this entry?')){S.mistakes=(S.mistakes||[]).filter(y=>y.id!==id);save();renderMistList()}return}
+  if(a==='mreason'){MF.reason=b.dataset.v;renderMistList();return}
+  if(a==='tab'){S.active=+b.dataset.i;F.pend='any';VIEW='syl';save();renderAll();closeSide();return}
+  if(a==='goto'){VIEW='syl';renderViews();openU.add(b.dataset.u);renderUnits();closeSide();const el=document.querySelector(`.unit[data-u="${b.dataset.u}"]`);el&&el.scrollIntoView({behavior:'smooth',block:'start'});return}
+  if(a==='addsubject'){ask({title:'New subject',desc:'Add your own subject, like Mock tests or Formula sheet. It starts empty so you can build it your way.',label:'Subject name',ph:'e.g. Mock tests'},n=>{S.subjects.push(mkSubject(n,[],true));S.active=S.subjects.length-1;save();renderAll();closeSide()});return}
+  if(a==='delsubject'){if(confirm('Delete the subject "'+sb.name+'" and everything in it?')){S.subjects.splice(S.active,1);S.active=0;save();renderAll()}return}
+  if(a==='addcol'){ask({title:'Add your own field',desc:'It appears as a new column on every topic in '+sb.name+'.',label:'Field name',ph:'e.g. Revision, Doubts, Formula note',type:true},(n,t)=>{sb.cols.push({id:'c'+uid(),label:n.slice(0,16),type:t,core:false});F.pend='any';save();renderAll()});return}
+  if(a==='delcol'){const c=sb.cols.find(x=>x.id===b.dataset.c);if(c&&confirm('Remove the field "'+c.label+'"?')){sb.cols=sb.cols.filter(x=>x.id!==c.id);if(F.pend===c.id)F.pend='any';save();renderAll()}return}
+  if(a==='fimp'){F.imp=+b.dataset.v;renderBar();renderUnits();return}
+  if(a==='fmark'){F.mark=!F.mark;renderBar();renderUnits();return}
+  if(a==='fclear'){Object.assign(F,{q:'',imp:0,mark:false,weak:false,status:'all',pend:'any'});renderBar();renderUnits();return}
+  if(a==='expand'){sb.units.forEach(u=>openU.add(u.id));renderUnits();return}
+  if(a==='collapse'){openU.clear();renderUnits();return}
+  if(a==='toggle'){const el=b.closest('.unit'),id=el.dataset.u;openU.has(id)?openU.delete(id):openU.add(id);el.classList.toggle('open');b.setAttribute('aria-expanded',el.classList.contains('open'));return}
+  if(a==='delunit'){const id=b.closest('.unit').dataset.u;const u=sb.units.find(x=>x.id===id);if(u&&confirm('Delete the unit "'+u.name+'"?')){sb.units=sb.units.filter(x=>x.id!==id);refresh()}return}
+  if(a==='addunit'){const i=$('#newUnit'),n=i.value.trim();if(n){const u={id:uid(),name:n,grp:'',no:0,topics:[]};sb.units.push(u);openU.add(u.id);refresh()}return}
+  if(a==='addtopic'){const i=document.querySelector(`[data-add="${b.dataset.u}"]`),n=i.value.trim();if(n){const u=sb.units.find(x=>x.id===b.dataset.u);u.topics.push(mkTopic(n));openU.add(u.id);refresh();const nx=document.querySelector(`[data-add="${u.id}"]`);nx&&nx.focus()}return}
+  const {u,t}=find(b);if(!t)return;
+  if(a==='imp'){const v=+b.dataset.v;t.imp=(t.imp===v)?0:v}
+  else if(a==='mark')t.mark=!t.mark;
+  else if(a==='chk'){const c=b.dataset.c;t.done[c]=!t.done[c]}
+  else if(a==='deltopic'){if(confirm('Delete "'+t.name+'"?'))u.topics=u.topics.filter(x=>x.id!==t.id);else return}
+  refresh();
+});
+document.addEventListener('input',e=>{
+  const el=e.target;
+  if(el.id==='q'){F.q=el.value;renderUnits();return}
+  if(el.classList&&el.classList.contains('cellt')){const {t}=find(el);if(t){t.txt=t.txt||{};t.txt[el.dataset.c]=el.value;save()}}
+});
+document.addEventListener('change',e=>{
+  if(e.target.id==='fstatus'){F.status=e.target.value;renderUnits()}
+  if(e.target.id==='fpend'){F.pend=e.target.value;renderUnits()}
+});
+document.addEventListener('keydown',e=>{
+  const t=e.target;
+  if(e.key==='Escape'){closeDlg();closeSide();return}
+  if(e.key!=='Enter')return;
+  if(t.dataset&&t.dataset.add)document.querySelector(`[data-act="addtopic"][data-u="${t.dataset.add}"]`).click();
+  else if(t.id==='newUnit')document.querySelector('[data-act="addunit"]').click();
+  else if(t.id==='inName'||t.id==='inGoal')$('#begin').click();
+  else if(t.id==='dName')$('#dOk').click();
+});
+
+/* ---------- Profile ---------- */
+function openModal(){$('#inName').value=S.name||'';$('#inGoal').value=S.goal||'';$('#err').textContent='';$('#veil').classList.add('show');setTimeout(()=>$('#inName').focus(),50)}
+$('#begin').onclick=()=>{
+  const n=$('#inName').value.trim(),g=Math.round(+$('#inGoal').value);
+  if(!n){$('#err').textContent='Enter your name to continue.';return}
+  if(!(g>=1&&g<=300)){$('#err').textContent='Enter a goal between 1 and 300.';return}
+  S.name=n;S.goal=g;save();$('#veil').classList.remove('show');renderHero();
+};
+$('#editProfile').onclick=openModal;$('#editGoal').onclick=openModal;
+
+/* ---------- Backup ---------- */
+$('#exp').onclick=()=>{const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='jee-tracker-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)};
+$('#imp').onclick=()=>$('#file').click();
+$('#file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d||!Array.isArray(d.subjects))throw 0;S=d;S.active=0;save();renderAll();if(!S.name)openModal()}catch(x){alert('That file is not a valid tracker backup.')}};r.readAsText(f);e.target.value=''};
+$('#reset').onclick=()=>{if(confirm('This erases all your progress, custom subjects and fields. Continue?')){try{localStorage.removeItem(KEY)}catch(e){}S=fresh();S.name='';S.goal=0;openU.clear();renderAll();openModal()}};
+
+/* ---------- Exam countdown ---------- */
+let editExam=false;
+const DAY=86400000;
+const parseD=x=>{const p=x.split('-').map(Number);return new Date(p[0],p[1]-1,p[2])};
+const fmtD=d=>d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+function todayISO(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0')}
+const p2=n=>String(n).padStart(2,'0');
+function renderCount(){
+  const el=$('#count');
+  if(!S.exam||editExam){
+    el.innerHTML=`<div class="cform"><div><h2>${S.exam?'Change your exam date':'When is your exam?'}</h2><p>Pick the date and we will count down the days for you.</p></div>
+      <div><div class="crow"><input type="date" id="examIn" min="${todayISO()}" value="${esc(S.exam||'')}" aria-label="Exam date"><button class="btn solid" data-act="setexam">Start countdown</button>${S.exam?'<button class="btn" data-act="cancelexam">Cancel</button>':''}</div><div class="err" id="examErr" style="margin:8px 0 0"></div></div></div>`;
+    return;
+  }
+  el.innerHTML=`<div><div class="ck" id="cLabel">Days left</div><div class="big" id="cDays">0</div><div class="cd">${esc(fmtD(parseD(S.exam)))}</div></div>
+    <div><div class="cu"><div><b id="cH">00</b><small>hours</small></div><div><b id="cM">00</b><small>minutes</small></div><div><b id="cS">00</b><small>seconds</small></div></div>
+    <div class="meter" style="margin-top:16px"><span id="cBar" style="width:0"></span></div>
+    <div class="cn" id="cNote" style="margin-top:4px"></div>
+    <div class="cacts"><button class="link" data-act="editexam">Change date</button><button class="link" data-act="clearexam">Remove</button></div></div>`;
+  tickCount();
+}
+function tickCount(){
+  if(!S.exam||editExam||!$('#cDays'))return;
+  const d=parseD(S.exam),now=new Date(),diff=d-now,end=d.getTime()+DAY;
+  const a=stats(),left=a.topics-a.full;
+  let days='0',h=0,m=0,s=0,label='Days left',note='';
+  if(now>=end){days='Over';label='Exam date has passed';note='Set a new date to start another countdown.'}
+  else if(diff<=0){days='Today';label='Exam day';note='You have prepared for this. Good luck.'}
+  else{
+    days=String(Math.floor(diff/DAY));h=Math.floor(diff/3600000)%24;m=Math.floor(diff/60000)%60;s=Math.floor(diff/1000)%60;
+    label=days==='1'?'Day left':'Days left';
+    const dl=Math.max(1,Math.ceil(diff/DAY));
+    note='';
+  }
+  const st=S.examStart?parseD(S.examStart):null;
+  let pct=100;if(st&&d>st)pct=Math.max(0,Math.min(100,(now-st)/(d-st)*100));
+  $('#cLabel').textContent=label;$('#cDays').textContent=days;$('#cDays').classList.toggle('txt',isNaN(+days));
+  $('#cH').textContent=p2(h);$('#cM').textContent=p2(m);$('#cS').textContent=p2(s);
+  $('#cBar').style.width=pct+'%';
+  $('#cNote').textContent=note;
+}
+setInterval(tickCount,1000);
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='examIn'){const b=document.querySelector('[data-act="setexam"]');b&&b.click()}});
+
+/* ---------- Install as an app ---------- */
+let deferred=null;
+const standalone=()=>(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone;
+const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#installBtn').hidden=false});
+window.addEventListener('appinstalled',()=>{deferred=null;$('#installBtn').hidden=true});
+if(isIOS&&!standalone())$('#installBtn').hidden=false;
+$('#installBtn').onclick=()=>{
+  if(deferred){deferred.prompt();deferred.userChoice.finally(()=>{deferred=null;$('#installBtn').hidden=true})}
+  else alert('On iPhone or iPad: tap the Share button, then choose Add to Home Screen.');
+};
+if('serviceWorker' in navigator&&/^https?:/.test(location.protocol)){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})}
+
+/* ---------- Views: syllabus, mock tests, mistake notebook ---------- */
+let VIEW='syl';
+const MF={reason:'all',fixed:'all'};
+const REASONS=['Silly mistake','Concept gap','Time pressure','Formula forgotten','Calculation error'];
+const fmtS=x=>parseD(x).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+function renderViews(){
+  $('#views').innerHTML=[['syl','Syllabus'],['mocks','Mock tests'],['mist','Mistake notebook']].map(([k,l])=>`<button class="vtab ${VIEW===k?'on':''}" role="tab" aria-selected="${VIEW===k}" data-act="view" data-v="${k}">${l}</button>`).join('');
+  $('#sylView').hidden=VIEW!=='syl';$('#mockView').hidden=VIEW!=='mocks';$('#mistView').hidden=VIEW!=='mist';
+}
+function mockChart(rows){
+  const W=640,H=260,L=44,R=16,T=18,B=34;
+  const tot=rows.map(r=>r.m+r.p+r.c);
+  const ymin=Math.min(0,...tot),ymax=300;
+  const xs=i=>rows.length===1?(L+(W-L-R)/2):(L+30)+(W-L-R-60)*i/(rows.length-1);
+  const ys=v=>T+(H-T-B)*(1-(v-ymin)/(ymax-ymin));
+  const grid=[0,100,200,300].map(v=>`<line class="gl" x1="${L}" x2="${W-R}" y1="${ys(v).toFixed(1)}" y2="${ys(v).toFixed(1)}"/><text x="${L-8}" y="${(ys(v)+4).toFixed(1)}" text-anchor="end">${v}</text>`).join('');
+  const goal=S.goal?`<line class="goal" x1="${L}" x2="${W-R}" y1="${ys(S.goal).toFixed(1)}" y2="${ys(S.goal).toFixed(1)}"/><text x="${W-R}" y="${(ys(S.goal)-6).toFixed(1)}" text-anchor="end">Goal ${S.goal}</text>`:'';
+  const pts=rows.map((r,i)=>[xs(i),ys(tot[i])]);
+  const path=pts.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
+  const dots=pts.map((q,i)=>`<circle class="dot" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="5"><title>${esc(rows[i].name)}: ${tot[i]}</title></circle>`).join('');
+  const step=Math.ceil(rows.length/8);
+  const labs=rows.map((r,i)=>i%step?'':`<text x="${xs(i).toFixed(1)}" y="${H-10}" text-anchor="middle">${esc(r.name.slice(0,9))}</text>`).join('');
+  return `<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Mock test total marks over time">${grid}${goal}<path class="ln" d="${path}"/>${dots}${labs}</svg>`;
+}
+function renderMocks(){
+  const L=S.mocks=S.mocks||[];
+  const rows=L.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0);
+  let body='';
+  if(rows.length){
+    const tot=rows.map(r=>r.m+r.p+r.c),n=rows.length;
+    const avg=k=>Math.round(rows.reduce((a,r)=>a+r[k],0)/n);
+    const am=avg('m'),ap=avg('p'),ac=avg('c');
+    const sj=[['Maths',am],['Physics',ap],['Chemistry',ac]];const weak=sj.slice().sort((a,b)=>a[1]-b[1])[0][0];
+    body=`<div class="panel"><div class="stats">
+      <div class="stat"><small>Latest total</small><b>${tot[n-1]}</b></div>
+      <div class="stat"><small>Best total</small><b>${Math.max(...tot)}</b></div>
+      <div class="stat"><small>Average total</small><b>${Math.round(tot.reduce((a,b)=>a+b,0)/n)}</b></div>
+      <div class="stat"><small>Tests logged</small><b>${n}</b></div></div>
+      ${mockChart(rows)}
+      <p class="hint" style="margin:10px 0 0">Average by subject: Maths ${am} · Physics ${ap} · Chemistry ${ac}. Weakest so far: ${weak}.</p></div>
+      <div class="panel"><h2>Your tests</h2><div class="tblw"><table class="tbl"><thead><tr><th>Test</th><th>Date</th><th class="r">Maths</th><th class="r">Physics</th><th class="r">Chemistry</th><th class="r">Total</th><th></th></tr></thead><tbody>`+
+      rows.slice().reverse().map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(fmtS(r.date))}</td><td class="r">${r.m}</td><td class="r">${r.p}</td><td class="r">${r.c}</td><td class="r"><b>${r.m+r.p+r.c}</b></td><td class="r"><button class="x" data-act="delmock" data-id="${r.id}" aria-label="Delete test">×</button></td></tr>`).join('')+`</tbody></table></div></div>`;
+  }else body=`<div class="empty">No tests yet. Add your first mock test above to see your marks chart.</div>`;
+  $('#mockView').innerHTML=`<div class="panel"><h2>Log a mock test</h2><p class="hint">JEE Main has 100 marks per subject, 300 in total. Marks can be negative.</p>
+    <div class="frm" id="mockForm">
+      <label class="grow">Test name<input type="text" id="mkName" maxlength="40" placeholder="e.g. Mock ${L.length+1}"></label>
+      <label class="w2">Date<input type="date" id="mkDate" value="${todayISO()}"></label>
+      <label class="w1">Maths<input type="number" id="mkM" min="-25" max="100" inputmode="numeric" placeholder="0"></label>
+      <label class="w1">Physics<input type="number" id="mkP" min="-25" max="100" inputmode="numeric" placeholder="0"></label>
+      <label class="w1">Chemistry<input type="number" id="mkC" min="-25" max="100" inputmode="numeric" placeholder="0"></label>
+      <button class="btn solid" data-act="addmock">Add test</button></div>
+    <div class="err" id="mkErr" style="margin:10px 0 0"></div></div>`+body;
+}
+function renderMist(){
+  $('#mistView').innerHTML=`<div class="panel"><h2>Mistake notebook</h2><p class="hint">Write down every question you lose marks on, and why. Tick it once you have fixed the gap.</p>
+    <div class="frm" id="mistForm">
+      <label class="w2">Subject<select id="msSubj">${S.subjects.map(x=>`<option>${esc(x.name)}</option>`).join('')}</select></label>
+      <label class="grow">Topic or question<input type="text" id="msTopic" maxlength="90" placeholder="e.g. Integration by parts, Q12 of Mock 3"></label>
+      <label class="w2">Reason<select id="msReason">${REASONS.map(r=>`<option>${esc(r)}</option>`).join('')}</select></label>
+      <label class="grow">Note (optional)<input type="text" id="msNote" maxlength="200" placeholder="What will you do differently?"></label>
+      <button class="btn solid" data-act="addmist">Add</button></div>
+    <div class="err" id="msErr" style="margin:10px 0 0"></div></div>
+    <div id="mistList"></div>`;
+  renderMistList();
+}
+function renderMistList(){
+  const L=S.mistakes=S.mistakes||[];
+  const rows=L.filter(x=>(MF.reason==='all'||x.reason===MF.reason)&&(MF.fixed==='all'||(MF.fixed==='fixed')===!!x.fixed)).reverse();
+  const cnt=r=>r==='all'?L.length:L.filter(x=>x.reason===r).length;
+  $('#mistList').innerHTML=`<div class="mfilt">${['all'].concat(REASONS).map(r=>`<button class="pill ${MF.reason===r?'on':''}" data-act="mreason" data-v="${esc(r)}">${r==='all'?'All':esc(r)} ${cnt(r)}</button>`).join('')}
+    <select id="mfixed" aria-label="Fixed status"><option value="all" ${MF.fixed==='all'?'selected':''}>All entries</option><option value="todo" ${MF.fixed==='todo'?'selected':''}>To fix</option><option value="fixed" ${MF.fixed==='fixed'?'selected':''}>Fixed</option></select></div>`+
+    (rows.length?rows.map(x=>`<div class="mcard ${x.fixed?'fixed':''}" data-m="${x.id}"><button class="chk" data-act="mfix" aria-pressed="${!!x.fixed}" aria-label="Mark as fixed"></button><div class="mb"><div><span class="tag">${esc(x.subj)}</span><span class="tag">${esc(x.reason)}</span></div><b>${esc(x.topic)}</b>${x.note?`<p>${esc(x.note)}</p>`:''}<p>${esc(fmtS(x.date))}</p></div><button class="x" data-act="delmist" aria-label="Delete entry">×</button></div>`).join(''):`<div class="empty">${L.length?'No entries match this filter.':'Nothing here yet. Add the first question you got wrong.'}</div>`);
+}
+document.addEventListener('change',e=>{if(e.target.id==='mfixed'){MF.fixed=e.target.value;renderMistList()}});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!e.target.closest)return;
+  if(e.target.closest('#mockForm')){e.preventDefault();document.querySelector('[data-act="addmock"]').click()}
+  else if(e.target.closest('#mistForm')&&e.target.tagName==='INPUT'){e.preventDefault();document.querySelector('[data-act="addmist"]').click()}
+});
+
+/* ---------- Start ---------- */
+setTheme(th);
+if(S.subjects[0]&&S.subjects[0].units[0])openU.add(S.subjects[0].units[0].id);
+renderAll();
+if(!S.name||!S.goal)openModal();
+})();
+</script>
+</body>
+</html>
